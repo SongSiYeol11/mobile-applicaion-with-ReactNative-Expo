@@ -1,5 +1,7 @@
 import express from "express"
+import dotnev from "dotenv"
 
+dotnev.config()  // 여기서부터 다시하기 13:34
 const app = express()
 
 app.get("/",(req,res) =>{
