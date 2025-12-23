@@ -6,7 +6,7 @@ dotenv.config()   //.env 파일에 적힌 내용을 읽어서 process.env에 넣
 
 const app = express()
 //middleware => 중요한 점 : 중복 제거용 => 인증 검사, 토큰 확인, 요청시간 기록 , IP 확인, 요청 데이터 검증
-app.use(express.join());
+app.use(express.json());
 
 
 //our custom simple middleware
@@ -49,10 +49,23 @@ app.post("/api/transactions",async(req,res) =>{
       try {
         const{title, amount, category,user_id} = req.body
         
+        if(!title || !user_id || !category || !amount === undefined){
+          return res.status(400).json({message:"ALL fields are required"})
+        }
+
+        await sql`
+          INSERT INTO transactions(user_id,title, amount, category)
+          VALUES (${user_id},${title},${amount},${category})
+          RETURNING *
+
+        `
+        console.log(transaction)
+        res.status(201).json(transaction[0])
       } catch (error) {
-        
+        console.log("Error creating the transaction",error)
+        res.status(500).json({message:"internal server Error"})
       }
-  })
+  });
 
 //DB 연결 성공을 보장하기 위해서 이함수를 씀
 //then()은 DB에 연동이 되야지만 실행이 된다.
