@@ -10,6 +10,7 @@ app.use(express.json());
 
 
 //our custom simple middleware
+//next 는 자연스럽게 서버가 멈춘것 처럼 안보이게 하기 위함
 app.use((req,res,next) =>{
   console.log("Hey we hit a req, the method is",req.method)
   next()
@@ -39,6 +40,17 @@ app.get("/",(req,res) =>{
   res.send("its working")
 })
 
+app.get("/api/transactions/:userId",async(req,res) =>{
+  try {
+    const {userID} = req.params
+    const transactions =await sql`
+      SELECT * FROM transaction WHERE user_id = ${userId} ORDER BY created_at DESC
+    `
+  } catch (error) {
+      console.log("Error getting creating the transaction",error)
+      res.status(500).json({message:"internal server Error"})
+  }
+})
 
 // "/api/transactions"  거래 내역 생성 ,입출금 기록 추가,결제 정보 저장
 // async (req, res) => {} req:클라이언트가 서버로 보낸 정보
@@ -53,13 +65,26 @@ app.post("/api/transactions",async(req,res) =>{
           return res.status(400).json({message:"ALL fields are required"})
         }
 
+        //RETURNING * 추가된 데이터를 즉시 확인
         await sql`
           INSERT INTO transactions(user_id,title, amount, category)
           VALUES (${user_id},${title},${amount},${category})
-          RETURNING *
+          RETURNING * 
 
-        `
+    
+          `
+//  console.log(transaction)
+// {
+//   "id": 12,
+//   "user_id": "abc123",
+//   "title": "점심",
+//   "amount": 9000,
+//   "category": "food",
+//   "created_at": "2025-12-23"
+// }
+        
         console.log(transaction)
+        //한 행씩 가져오기 때문에 
         res.status(201).json(transaction[0])
       } catch (error) {
         console.log("Error creating the transaction",error)
