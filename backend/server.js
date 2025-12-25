@@ -1,11 +1,14 @@
 import express from "express"
 import dotenv from "dotenv"
 import { sql } from "./config/db.js";
+import rateLimiter from "./middleware/rateLimiter.js";
 
 dotenv.config()   //.env 파일에 적힌 내용을 읽어서 process.env에 넣어주는 역할
 
 const app = express()
 //middleware => 중요한 점 : 중복 제거용 => 인증 검사, 토큰 확인, 요청시간 기록 , IP 확인, 요청 데이터 검증
+
+app.use(rateLimiter);
 app.use(express.json());
 
 
